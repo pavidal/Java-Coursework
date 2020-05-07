@@ -95,7 +95,7 @@
         <properties>
           <background color="-1158573"/>
           <font size="24" style="1"/>
-          <foreground color="-2434342"/>
+          <foreground color="-1"/>
           <hideActionText value="false"/>
           <text value="Quit"/>
         </properties>
@@ -125,8 +125,10 @@
           </grid>
         </constraints>
         <properties>
+          <background color="-13973481"/>
+          <enabled value="false"/>
           <font size="24" style="1"/>
-          <foreground color="-2434342"/>
+          <foreground color="-1"/>
           <text value="Login"/>
         </properties>
       </component>

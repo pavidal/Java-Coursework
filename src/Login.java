@@ -73,30 +73,22 @@ public class Login extends JFrame {
         boolean isValid = true;
 
         for (JTextField field : new JTextField[] {usernameField, postCodeField, surnameField}) {
-            isValid = isValid && (!field.getText().isEmpty() || !field.getText().contains(","));
+            isValid = isValid && !(field.getText().isEmpty() || field.getText().contains(","));
         }
 
         Pattern postcode = Pattern.compile("^[A-Z]{1,2}[0-9R][0-9A-Z]? [0-9][ABD-HJLNP-UW-Z]{2}$");
-        Matcher match = postcode.matcher(postCodeField.getText());
+        Matcher match = postcode.matcher(postCodeField.getText().toUpperCase());
 
         if (!match.matches()) isValid = false;
 
         loginButton.setEnabled(isValid);
     }
-
+    
     public static void main(String[] args) {
         JFrame frame = new JFrame("Login");
         frame.setContentPane(new Login().LoginPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                
-            }
-        });
     }
-
-
 }
