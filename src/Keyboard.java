@@ -3,7 +3,7 @@ public class Keyboard extends Item{
     private String layout;
 
     /**
-     * This is a parent class for Keyboard and Mouse.
+     * This is a keyboard class.
      *
      * @param barcode       - Device barcode ID
      * @param deviceType    - Its category (standard, gaming, etc.)
@@ -13,6 +13,7 @@ public class Keyboard extends Item{
      * @param stockQuantity - Amount of this item in stock
      * @param originalCost  - Original cost of purchase
      * @param retailPrice   - Advertised retail price
+     * @param layout        - Keyboard layout
      */
     public Keyboard(int barcode, String deviceType, String brand, String colour, String connectivity,
                     String stockQuantity, double originalCost, double retailPrice, String layout) {
@@ -22,7 +23,7 @@ public class Keyboard extends Item{
     }
 
     /**
-     * This is a parent class of Keyboard and Mouse.
+     * This is a keyboard class.
      *
      * @param desc - Array of the item's description
      */

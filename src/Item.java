@@ -1,13 +1,13 @@
 public class Item {
 
-     protected int barcode;
-     protected String deviceType;
-     protected String brand;
-     protected String colour;
-     protected String connectivity;
-     protected String stockQuantity;
-     protected double originalCost;
-     protected double retailPrice;
+    private int barcode;
+    private String deviceType;
+    private String brand;
+    private String colour;
+    private String connectivity;
+    private String stockQuantity;
+    private double originalCost;
+    private double retailPrice;
 
     /**
      * This is a parent class for Keyboard and Mouse.
