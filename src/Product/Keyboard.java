@@ -1,3 +1,8 @@
+package Product;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class Keyboard extends Item{
 
     private String layout;
@@ -16,7 +21,7 @@ public class Keyboard extends Item{
      * @param layout        - Keyboard layout
      */
     public Keyboard(int barcode, String deviceType, String brand, String colour, String connectivity,
-                    String stockQuantity, double originalCost, double retailPrice, String layout) {
+                    int stockQuantity, double originalCost, double retailPrice, String layout) {
 
         super(barcode, deviceType, brand, colour, connectivity, stockQuantity, originalCost, retailPrice);
         this.layout = layout;
@@ -29,10 +34,14 @@ public class Keyboard extends Item{
      */
     public Keyboard(String[] desc) {
         super(desc);
-        this.layout = desc[8];
+        this.layout = desc[9];
     }
 
-    public String[] getDesc() {
-        return new String[] {};
+    public List<Object> getProperties(boolean getOGCost) {
+    	List<Object> superList = new ArrayList<Object>();
+    	superList.addAll(super.getProperties(getOGCost));
+    	superList.add(layout);
+    	
+    	return superList;
     }
 }

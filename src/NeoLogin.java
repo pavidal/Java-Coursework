@@ -15,8 +15,11 @@ import javax.swing.JTextField;
 import javax.swing.JButton;
 import java.awt.Color;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.awt.event.ActionEvent;
@@ -28,6 +31,8 @@ public class NeoLogin extends JFrame {
 	private JTextField fieldSurname;
 	private JTextField fieldPostcode;
 	private JButton btnLogin;
+	
+	private User currentUser;
 	
 	/**
 	 * Validate all fields.
@@ -49,12 +54,6 @@ public class NeoLogin extends JFrame {
         if (!match.matches()) isValid = false;
 
         btnLogin.setEnabled(isValid);
-	}
-	
-	private boolean verifyFields() {
-		
-		
-		return false;
 	}
 	
 	/**
@@ -89,6 +88,21 @@ public class NeoLogin extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
+		// When login is successful, the login window is disposed
+        // and detected with this instead of exiting.
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+            	// Remove listener as this is a one-time action
+            	removeWindowListener(this);
+            	
+            	// Show main window
+            	Application app = new Application();
+            	app.setUser(currentUser);
+            	app.setVisible(true);
+            }
+        });
+		
 		JLabel formTitle = new JLabel("Login");
 		formTitle.setFont(new Font("Segoe UI", Font.BOLD, 48));
 		formTitle.setBounds(10, 11, 444, 75);
@@ -99,6 +113,7 @@ public class NeoLogin extends JFrame {
 		fieldUsername.setBounds(10, 165, 454, 50);
 		contentPane.add(fieldUsername);
 		fieldUsername.setColumns(10);
+		// Validate all fields on the fly
 		fieldUsername.getDocument().addDocumentListener(new DocumentListener() {
 
 			@Override
@@ -137,6 +152,7 @@ public class NeoLogin extends JFrame {
 		fieldSurname.setColumns(10);
 		fieldSurname.setBounds(10, 295, 454, 50);
 		contentPane.add(fieldSurname);
+		// Validate all fields on the fly
 		fieldSurname.getDocument().addDocumentListener(new DocumentListener() {
 
 			@Override
@@ -170,6 +186,7 @@ public class NeoLogin extends JFrame {
 		fieldPostcode.setColumns(10);
 		fieldPostcode.setBounds(10, 428, 454, 50);
 		contentPane.add(fieldPostcode);
+		// Validate all fields on the fly
 		fieldPostcode.getDocument().addDocumentListener(new DocumentListener() {
 
 			@Override
@@ -207,10 +224,35 @@ public class NeoLogin extends JFrame {
 		btnLogin = new JButton("Login");
 		btnLogin.setEnabled(false);
 		btnLogin.addActionListener(new ActionListener() {
+			/**
+			 * Verify all fields. 
+			 * If input matches an entry in DB, sets current user for main and disposes window. 
+			 */
 			public void actionPerformed(ActionEvent e) {
 				Window thisWindow = Window.getWindows()[0];
+				
+				String username = fieldUsername.getText();
+				String surname = fieldSurname.getText();
+				String postcode = fieldPostcode.getText();
+				
 				try {
+					ArrayList<User> userList = Database.getUsers();
 					
+					for (User u : userList) {
+						System.out.println(Arrays.deepToString(u.getAll()));
+						if (u.validateLogin(username, surname, postcode)) {
+							// Send the current user details
+							currentUser = u;
+							
+							// Dispose window so windowlistener can detect
+							setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+							dispatchEvent(new WindowEvent(thisWindow, WindowEvent.WINDOW_CLOSING));
+							return;
+						}
+					}
+					
+					// When none matched
+					JOptionPane.showMessageDialog(thisWindow, "Wrong login details. \nPlease check your credentials.", "Bad Login.", JOptionPane.WARNING_MESSAGE);
 				} catch (FileNotFoundException e1) {
 					e1.printStackTrace();
 					JOptionPane.showMessageDialog(thisWindow, "Unable to read database.", "Error", JOptionPane.ERROR_MESSAGE);

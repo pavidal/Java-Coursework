@@ -1,3 +1,8 @@
+package Product;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class Mouse extends Item{
     private int buttonCount;
 
@@ -14,7 +19,7 @@ public class Mouse extends Item{
      * @param buttonCount - Number of mouse buttons
      */
     public Mouse(int barcode, String deviceType, String brand, String colour, String connectivity,
-                    String stockQuantity, double originalCost, double retailPrice, int buttonCount) {
+                    int stockQuantity, double originalCost, double retailPrice, int buttonCount) {
 
         super(barcode, deviceType, brand, colour, connectivity, stockQuantity, originalCost, retailPrice);
         this.buttonCount = buttonCount;
@@ -26,6 +31,15 @@ public class Mouse extends Item{
      */
     public Mouse(String[] desc) {
         super(desc);
-        this.buttonCount = Integer.parseInt(desc[8]);
+        this.buttonCount = Integer.parseInt(desc[9]);
     }
+    
+    public List<Object> getProperties(boolean getOGCost) {
+    	List<Object> superList = new ArrayList<Object>();
+    	superList.addAll(super.getProperties(getOGCost));
+    	superList.add(buttonCount);
+    	
+    	return superList;
+    }
+    
 }
