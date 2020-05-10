@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
@@ -183,6 +184,7 @@ public class Database {
 			}
 		}
 
+		Collections.sort(itemList);
 		return itemList;
 	}
 
@@ -196,6 +198,7 @@ public class Database {
 			}
 		}
 
+		Collections.sort(itemList);
 		return itemList;
 	}
 
@@ -238,7 +241,7 @@ public class Database {
 		return null;
 	}
 
-	public static void cancelPurchase(User user, Basket basket) throws FileNotFoundException {
+	public static void logBasket(User user, Basket basket, String type, String paymentType) throws FileNotFoundException {
 		List<Item> itemList = basket.getItems();
 		StringBuilder sb = new StringBuilder();
 		String toAppend = formatter(toArray(read(PATH_LOG)));
@@ -253,8 +256,8 @@ public class Database {
 					String.valueOf(item.getBarcode()),
 					String.valueOf(item.getSingularPrice()), 
 					String.valueOf(item.quantity), 
-					"cancelled", 
-					"", 
+					type, 
+					paymentType, 
 					date };
 			
 			sb.append(formatter(entry));
@@ -264,5 +267,24 @@ public class Database {
 		sb.append(toAppend);
 
 		write(PATH_LOG, sb.toString());
+	}
+	
+	public static void logBasket(User user, Basket basket, String type) throws FileNotFoundException {
+		logBasket(user, basket, type, ""); 
+	}
+	
+	public static String[] getFilters(int field) throws FileNotFoundException {
+		List<String> filterList = new ArrayList<String>();
+		String[][] productArray = toArray(read(PATH_ITEM));
+		
+		for (String[] product : productArray) {
+			if (!filterList.contains(product[field])) {
+				filterList.add(product[field]);
+			}
+		}
+		
+		filterList.add(".any");
+		
+		return filterList.toArray(new String[0]);
 	}
 }

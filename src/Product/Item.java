@@ -3,7 +3,7 @@ package Product;
 import java.util.Arrays;
 import java.util.List;
 
-public class Item {
+public class Item implements Comparable<Item>{
 
     private int barcode;
     private String deviceType;
@@ -63,6 +63,14 @@ public class Item {
     	return (this.retailPrice * this.quantity);
     }
     
+    public String getColour() {
+		return this.colour;
+	}
+    
+    public String getBrand() {
+    	return this.brand;
+    }
+    
     public double getSingularPrice() {
     	return this.retailPrice;
     }
@@ -94,4 +102,9 @@ public class Item {
     	
     	return Arrays.asList(properties);
     }
+
+	@Override
+	public int compareTo(Item o) {
+		return (o.stockQuantity - this.stockQuantity);
+	}
 }

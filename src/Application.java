@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
 import java.util.List;
 import java.awt.event.ActionEvent;
 import javax.swing.JLabel;
@@ -16,12 +17,14 @@ import javax.swing.SwingConstants;
 import java.awt.Font;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
-
 import Product.Item;
 import Product.Keyboard;
 import Product.Mouse;
 
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JComboBox;
+import javax.swing.DefaultComboBoxModel;
 
 public class Application extends JFrame {
 
@@ -38,14 +41,48 @@ public class Application extends JFrame {
 	private JButton btnAddToBasket;
 	private JPanel panelBasket;
 	private JLabel lblTotalCostNum;
+	private JComboBox<String> comboColours;
+	private JComboBox<String> comboBrands;
+	private JPanel panelFilter;
+	private JButton btnKeyboard;
+	private JButton btnMice;
+	private JButton btnCheckout;
 
 	public void setUser(User user) {
 		this.currentUser = user;
 		lblUsername.setText(user.getName());
+		
+		// Enable only for admins
 		btnAddItem.setVisible(user.getRole().equalsIgnoreCase("admin"));
+		
+		// Enable only for customers
 		btnBasket.setVisible(!user.getRole().equalsIgnoreCase("admin"));
+		btnAddToBasket.setVisible(!user.getRole().equalsIgnoreCase("admin"));
 
 		// Defaults to keyboard view
+		fillKeyboardTable();
+	}
+
+	private boolean filter(Item item) {
+		String selectedColour = (String) comboColours.getSelectedItem();
+		String selectedBrand = (String) comboBrands.getSelectedItem();
+
+		boolean cond1 = selectedBrand.contains("any") && selectedColour.contains("any");
+		boolean cond2 = selectedBrand.equals(item.getBrand()) && selectedColour.contains("any");
+		boolean cond3 = selectedBrand.contains("any") && selectedColour.equals(item.getColour());
+		boolean cond4 = selectedBrand.equals(item.getBrand()) && selectedColour.equals(item.getColour());
+
+		return ( cond1 || cond2 || cond3 || cond4 );
+	}
+
+	private void resetFilter() {
+		comboBrands.setSelectedIndex(0);
+		comboColours.setSelectedIndex(0);
+	}
+	
+	private void clearBasket() {
+		itemBasket.clear();
+		btnBasket.setText("Basket");
 		fillKeyboardTable();
 	}
 
@@ -71,11 +108,17 @@ public class Application extends JFrame {
 			for (Keyboard keyboard : keyboards) {
 				Object[] row = keyboard.getProperties(isAdmin).toArray();
 
-				model.addRow(row);
+				if (filter(keyboard)) {
+					model.addRow(row);
+				}
 			}
-
 			table.setModel(model);
+
+			btnKeyboard.setEnabled(false);
+			btnMice.setEnabled(true);
+
 			panelBasket.setVisible(false);
+			panelFilter.setVisible(true);
 
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -105,11 +148,18 @@ public class Application extends JFrame {
 			for (Mouse mouse : mice) {
 				Object[] row = mouse.getProperties(isAdmin).toArray();
 
-				model.addRow(row);
+				if (filter(mouse)) {
+					model.addRow(row);
+				}
 			}
 
 			table.setModel(model);
+
+			btnKeyboard.setEnabled(true);
+			btnMice.setEnabled(false);
+
 			panelBasket.setVisible(false);
+			panelFilter.setVisible(true);
 
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -151,10 +201,14 @@ public class Application extends JFrame {
 			}
 		}
 
-		java.text.DecimalFormat dFormat = new java.text.DecimalFormat("###,##0.00");
+		java.text.DecimalFormat dFormat = new java.text.DecimalFormat("#,###,##0.00");
 		lblTotalCostNum.setText(dFormat.format(itemBasket.getTotalPrice()));
 
 		panelBasket.setVisible(true);
+		panelFilter.setVisible(false);
+
+		btnKeyboard.setEnabled(true);
+		btnMice.setEnabled(true);
 
 		String[] columns = { "Barcode", "Category", "Type", "Brand", "Colour", "Quantity", "Price" };
 		List<Item> itemList = itemBasket.getItems();
@@ -266,8 +320,8 @@ public class Application extends JFrame {
 				if (option == JOptionPane.YES_OPTION) {
 					if (!itemBasket.isEmpty()) {
 						try {
-							Database.cancelPurchase(currentUser, itemBasket);
-							itemBasket.clear();
+							Database.logBasket(currentUser, itemBasket, "cancelled");
+							clearBasket();
 						} catch (FileNotFoundException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
@@ -284,18 +338,21 @@ public class Application extends JFrame {
 		contentPane.add(panelNav);
 		panelNav.setLayout(null);
 
-		JButton btnKeyboard = new JButton("Browse Keyboards");
+		btnKeyboard = new JButton("Browse Keyboards");
 		btnKeyboard.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				resetFilter();
 				fillKeyboardTable();
+
 			}
 		});
 		btnKeyboard.setBounds(10, 11, 145, 28);
 		panelNav.add(btnKeyboard);
 
-		JButton btnMice = new JButton("Browse Mice");
+		btnMice = new JButton("Browse Mice");
 		btnMice.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				resetFilter();
 				fillMouseTable();
 			}
 		});
@@ -336,7 +393,7 @@ public class Application extends JFrame {
 		panelNav.add(btnAddToBasket);
 
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(5, 128, 1008, 600);
+		scrollPane.setBounds(5, 128, 1008, 539);
 		contentPane.add(scrollPane);
 
 		table = new JTable();
@@ -352,10 +409,13 @@ public class Application extends JFrame {
 		btnClearBasket.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					Database.cancelPurchase(currentUser, itemBasket);
-					itemBasket.clear();
-					btnBasket.setText("Basket ( " + itemBasket.getSize() + " )");
-					fillKeyboardTable();
+					int option = JOptionPane.showConfirmDialog(table, "Are you sure you want to clear the basket?",
+							"Clear Basket", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+					if (option == JOptionPane.YES_OPTION) {
+						Database.logBasket(currentUser, itemBasket, "cancelled");
+						clearBasket();
+					}
 
 				} catch (FileNotFoundException e1) {
 					// TODO Auto-generated catch block
@@ -364,10 +424,59 @@ public class Application extends JFrame {
 
 			}
 		});
-		btnClearBasket.setBounds(165, 11, 145, 28);
+		btnClearBasket.setBounds(321, 11, 145, 28);
 		panelBasket.add(btnClearBasket);
 
-		JButton btnCheckout = new JButton("Checkout");
+		btnCheckout = new JButton("Checkout");
+		btnCheckout.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				Checkout c = new Checkout();
+				c.setVisible(true);
+
+				c.addWindowListener(new WindowAdapter() {
+					@Override
+					public void windowClosing(WindowEvent e) {
+						// If closed with [cancel] or [x]
+						if (c.getPaymentType() == null) {
+							int option = JOptionPane.showConfirmDialog(c, "Are you sure you want to cancel payment?",
+									"Cancel Payment", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+							if (option == JOptionPane.YES_OPTION) {
+								c.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+								c.dispatchEvent(new WindowEvent(c, WindowEvent.WINDOW_CLOSED));
+							}
+						} else {
+							// if closed with [Ok]
+							c.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+							c.dispatchEvent(new WindowEvent(c, WindowEvent.WINDOW_CLOSED));
+						}
+					}
+
+					@Override
+					public void windowClosed(WindowEvent e) {
+						System.out.println("aagajgoig");
+						String paymentType = c.getPaymentType();
+						
+						if (paymentType != null) {
+							try {
+								Database.logBasket(currentUser, itemBasket, "purchased", paymentType);
+								
+								String message = "£ " + lblTotalCostNum.getText() + " paid using " + paymentType;
+								JOptionPane.showMessageDialog(table, message);
+								
+								clearBasket();
+								
+								c.removeWindowListener(this);
+							} catch (FileNotFoundException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+						}
+						
+					}
+				});
+			}
+		});
 		btnCheckout.setBounds(853, 11, 145, 28);
 		panelBasket.add(btnCheckout);
 
@@ -382,11 +491,16 @@ public class Application extends JFrame {
 		panelBasket.add(btnIncQuantity);
 
 		JButton btnDecQuantity = new JButton("-");
+		btnDecQuantity.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				removeFromBasket();
+			}
+		});
 		btnDecQuantity.setFont(new Font("Tahoma", Font.BOLD, 24));
 		btnDecQuantity.setBounds(86, 11, 70, 28);
 		panelBasket.add(btnDecQuantity);
 
-		lblTotalCostNum = new JLabel("##,###.##");
+		lblTotalCostNum = new JLabel("0.00");
 		lblTotalCostNum.setFont(new Font("Segoe UI", Font.BOLD, 20));
 		lblTotalCostNum.setHorizontalAlignment(SwingConstants.TRAILING);
 		lblTotalCostNum.setBounds(719, 11, 124, 28);
@@ -397,5 +511,115 @@ public class Application extends JFrame {
 		lblTotalCost.setHorizontalAlignment(SwingConstants.TRAILING);
 		lblTotalCost.setBounds(620, 11, 89, 28);
 		panelBasket.add(lblTotalCost);
+
+		JButton btnSaveBasket = new JButton("Save Basket");
+		btnSaveBasket.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					if (!Database.getSavedBasket(currentUser).isEmpty()) {
+						int option = JOptionPane.showConfirmDialog(table,
+								"You have a basket saved previously.\nBaskets saved before today will be lost.\n\nContinue?",
+								"Previous Save Found", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+						if (option == JOptionPane.NO_OPTION) {
+							// Cancel operation
+							return;
+						}
+					}
+
+					Database.logBasket(currentUser, itemBasket, "saved");
+					clearBasket();
+					
+					JOptionPane.showMessageDialog(table, "Basket saved!");
+				} catch (FileNotFoundException e1) {
+					e1.printStackTrace();
+					JOptionPane.showMessageDialog(table, "Unable to save your basket.", "I/O Error",
+							JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
+		btnSaveBasket.setBounds(166, 11, 145, 28);
+		panelBasket.add(btnSaveBasket);
+
+		panelFilter = new JPanel();
+		panelFilter.setBounds(5, 678, 1008, 50);
+		contentPane.add(panelFilter);
+		panelFilter.setLayout(null);
+
+		JLabel lblNewLabel = new JLabel("Filter Products");
+		lblNewLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+		lblNewLabel.setBounds(10, 11, 110, 28);
+		panelFilter.add(lblNewLabel);
+
+		JSeparator separator = new JSeparator();
+		separator.setOrientation(SwingConstants.VERTICAL);
+		separator.setBounds(130, 11, 10, 28);
+		panelFilter.add(separator);
+
+		JLabel lblFilterColour = new JLabel("Colours");
+		lblFilterColour.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		lblFilterColour.setBounds(150, 11, 57, 28);
+		panelFilter.add(lblFilterColour);
+
+		comboColours = new JComboBox<String>();
+		comboColours.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (!btnKeyboard.isEnabled()) {
+					fillKeyboardTable();
+				} else {
+					fillMouseTable();
+				}
+			}
+		});
+		lblFilterColour.setLabelFor(comboColours);
+		String[] colourModel = { "Unavailable" };
+		try {
+			colourModel = Database.getFilters(4);
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			comboColours.setEnabled(false);
+		}
+		Arrays.sort(colourModel);
+		comboColours.setModel(new DefaultComboBoxModel<String>(colourModel));
+		comboColours.setBounds(217, 11, 110, 28);
+		panelFilter.add(comboColours);
+
+		JLabel lblFilterBrand = new JLabel("Brand");
+		lblFilterBrand.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		lblFilterBrand.setBounds(369, 11, 57, 28);
+		panelFilter.add(lblFilterBrand);
+
+		comboBrands = new JComboBox<String>();
+		comboBrands.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (!btnKeyboard.isEnabled()) {
+					fillKeyboardTable();
+				} else {
+					fillMouseTable();
+				}
+			}
+		});
+		lblFilterBrand.setLabelFor(comboBrands);
+		String[] brandModel = { "Unavailable" };
+		try {
+			brandModel = Database.getFilters(3);
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			comboColours.setEnabled(false);
+		}
+		Arrays.sort(brandModel);
+		comboBrands.setModel(new DefaultComboBoxModel<String>(brandModel));
+		comboBrands.setBounds(436, 11, 110, 28);
+		panelFilter.add(comboBrands);
+
+		JButton btnResetFilter = new JButton("Reset");
+		btnResetFilter.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				resetFilter();
+			}
+		});
+		btnResetFilter.setBounds(873, 11, 125, 28);
+		panelFilter.add(btnResetFilter);
 	}
 }
