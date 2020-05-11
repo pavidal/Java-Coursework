@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
@@ -240,6 +241,18 @@ public class Database {
 
 		return null;
 	}
+	
+	public static boolean checkBarcode(String barcode) throws FileNotFoundException {
+		String[][] stock = toArray(read(PATH_ITEM));
+		
+		for (String[] item : stock) {
+			if (item[0].equals(barcode)) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
 
 	public static void logBasket(User user, Basket basket, String type, String paymentType) throws FileNotFoundException {
 		List<Item> itemList = basket.getItems();
@@ -286,5 +299,22 @@ public class Database {
 		filterList.add(".any");
 		
 		return filterList.toArray(new String[0]);
+	}
+	
+	public static void subtractStock(Basket basket) throws FileNotFoundException {
+		List<Item> itemList = basket.getItems();
+		String[][] inventory = toArray(read(PATH_ITEM));
+		
+		for (String[] row : inventory) {
+			for (Item item : itemList) {
+				if (String.valueOf(item.getBarcode()).equals(row[0])) {
+					row[6] = String.valueOf(Integer.parseInt(row[6]) - item.quantity);
+				}
+			}
+		}
+		
+		String toWrite = formatter(inventory);
+		
+		write(PATH_ITEM, toWrite);
 	}
 }

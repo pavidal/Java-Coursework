@@ -75,6 +75,10 @@ public class Item implements Comparable<Item>{
     	return this.retailPrice;
     }
     
+    public int getStock() {
+    	return this.stockQuantity;
+    }
+    
     public List<Object> getProperties(boolean getOGCost) {
     	Object[] properties = null;
     	if (getOGCost) {

@@ -51,10 +51,10 @@ public class Application extends JFrame {
 	public void setUser(User user) {
 		this.currentUser = user;
 		lblUsername.setText(user.getName());
-		
+
 		// Enable only for admins
 		btnAddItem.setVisible(user.getRole().equalsIgnoreCase("admin"));
-		
+
 		// Enable only for customers
 		btnBasket.setVisible(!user.getRole().equalsIgnoreCase("admin"));
 		btnAddToBasket.setVisible(!user.getRole().equalsIgnoreCase("admin"));
@@ -68,18 +68,19 @@ public class Application extends JFrame {
 		String selectedBrand = (String) comboBrands.getSelectedItem();
 
 		boolean cond1 = selectedBrand.contains("any") && selectedColour.contains("any");
-		boolean cond2 = selectedBrand.equals(item.getBrand()) && selectedColour.contains("any");
-		boolean cond3 = selectedBrand.contains("any") && selectedColour.equals(item.getColour());
-		boolean cond4 = selectedBrand.equals(item.getBrand()) && selectedColour.equals(item.getColour());
+		boolean cond2 = selectedBrand.equalsIgnoreCase(item.getBrand()) && selectedColour.contains("any");
+		boolean cond3 = selectedBrand.contains("any") && selectedColour.equalsIgnoreCase(item.getColour());
+		boolean cond4 = selectedBrand.equalsIgnoreCase(item.getBrand())
+				&& selectedColour.equalsIgnoreCase(item.getColour());
 
-		return ( cond1 || cond2 || cond3 || cond4 );
+		return (cond1 || cond2 || cond3 || cond4);
 	}
 
 	private void resetFilter() {
 		comboBrands.setSelectedIndex(0);
 		comboColours.setSelectedIndex(0);
 	}
-	
+
 	private void clearBasket() {
 		itemBasket.clear();
 		btnBasket.setText("Basket");
@@ -362,6 +363,48 @@ public class Application extends JFrame {
 		btnAddItem = new JButton("Add Item");
 		btnAddItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				ProductForm pForm = new ProductForm();
+				pForm.setVisible(true);
+
+				pForm.addWindowListener(new WindowAdapter() {
+					@Override
+					public void windowClosing(WindowEvent e) {
+						if (pForm.getItem() == null) {
+							// when [cancel] or [x] is clicked
+							// confirm cancellation
+							int option = JOptionPane.showConfirmDialog(pForm,
+									"Are you sure you want to cancel?\nThis item will be discarded.", "Discard Item",
+									JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+							
+							if (option == JOptionPane.YES_OPTION) {
+								pForm.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+								pForm.dispatchEvent(new WindowEvent(pForm, WindowEvent.WINDOW_CLOSED));
+							}
+						} else {
+							// when [ok] is pressed
+							pForm.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+							pForm.dispatchEvent(new WindowEvent(pForm, WindowEvent.WINDOW_CLOSED));
+						}
+					}
+
+					@Override
+					public void windowClosed(WindowEvent e) {
+						String[] item = pForm.getItem();
+						
+						if (item != null) {
+							String line = Database.formatter(item);
+							Database.append(Database.PATH_ITEM, line);
+							
+							if (btnKeyboard.isEnabled()) {
+								fillKeyboardTable();
+							} else {
+								fillMouseTable();
+							}
+							
+							pForm.removeWindowListener(this);
+						}
+					}
+				});
 			}
 		});
 		btnAddItem.setBounds(320, 11, 145, 28);
@@ -430,6 +473,23 @@ public class Application extends JFrame {
 		btnCheckout = new JButton("Checkout");
 		btnCheckout.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+
+				// Check if items in the basket have enough stock for the order
+				for (Item item : itemBasket.getItems()) {
+					if (item.quantity > item.getStock()) {
+
+						String itemInfo = item.getColour() + " " + item.getBrand() + " "
+								+ (item instanceof Keyboard ? "keyboard" : "mouse");
+
+						String message = "The " + itemInfo
+								+ " doesn't have the required amount in stock.\nYou're ordering " + item.quantity
+								+ " and we have " + item.getStock() + " in stock.";
+
+						JOptionPane.showMessageDialog(table, message);
+						return;
+					}
+				}
+
 				Checkout c = new Checkout();
 				c.setVisible(true);
 
@@ -456,23 +516,26 @@ public class Application extends JFrame {
 					public void windowClosed(WindowEvent e) {
 						System.out.println("aagajgoig");
 						String paymentType = c.getPaymentType();
-						
+
 						if (paymentType != null) {
 							try {
 								Database.logBasket(currentUser, itemBasket, "purchased", paymentType);
-								
+								Database.subtractStock(itemBasket);
+
 								String message = "£ " + lblTotalCostNum.getText() + " paid using " + paymentType;
 								JOptionPane.showMessageDialog(table, message);
-								
+
 								clearBasket();
-								
-								c.removeWindowListener(this);
 							} catch (FileNotFoundException e1) {
 								// TODO Auto-generated catch block
 								e1.printStackTrace();
+								JOptionPane.showMessageDialog(table, "Unable to process your purchase.", "I/O Error",
+										JOptionPane.ERROR_MESSAGE);
+							} finally {
+								c.removeWindowListener(this);
 							}
 						}
-						
+
 					}
 				});
 			}
@@ -528,7 +591,7 @@ public class Application extends JFrame {
 
 					Database.logBasket(currentUser, itemBasket, "saved");
 					clearBasket();
-					
+
 					JOptionPane.showMessageDialog(table, "Basket saved!");
 				} catch (FileNotFoundException e1) {
 					e1.printStackTrace();

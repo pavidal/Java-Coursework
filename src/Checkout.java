@@ -109,6 +109,7 @@ public class Checkout extends JDialog {
 	 * Create the dialog.
 	 */
 	public Checkout() {
+		setAlwaysOnTop(true);
 		setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 		setResizable(false);
 		setBounds(100, 100, 480, 465);
@@ -275,7 +276,6 @@ public class Checkout extends JDialog {
 
 						btnOkPressed = true;
 
-						setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 						dispatchEvent(new WindowEvent(thisWindow, WindowEvent.WINDOW_CLOSING));
 					}
 				});
@@ -292,7 +292,6 @@ public class Checkout extends JDialog {
 
 						btnOkPressed = false;
 
-						setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 						dispatchEvent(new WindowEvent(thisWindow, WindowEvent.WINDOW_CLOSING));
 					}
 				});

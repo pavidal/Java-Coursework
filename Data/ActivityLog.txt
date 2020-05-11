@@ -1,3 +1,5 @@
+102, E20 3BS, 237788, 8.99, 1, purchased, Credit Card, 11-05-2020
+102, E20 3BS, 124455, 5.99, 1, purchased, Credit Card, 11-05-2020
 104, PA3 2SW, 234555, 85.5, 2, purchased, Credit Card, 11-05-2020
 104, PA3 2SW, 221101, 6.99, 1, purchased, Credit Card, 11-05-2020
 104, PA3 2SW, 234555, 85.5, 2, saved, , 11-05-2020
