@@ -1,32 +1,28 @@
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-
-import java.awt.Font;
-import java.awt.Window;
-
-import javax.swing.JComboBox;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JSeparator;
-import javax.swing.JTextField;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.awt.event.ActionEvent;
-
 public class Checkout extends JDialog {
 
+	private static final long serialVersionUID = 1L;
 	private final JPanel contentPanel = new JPanel();
 	private JLabel lblPayment;
 	private JComboBox<String> comboPayment;
@@ -51,6 +47,11 @@ public class Checkout extends JDialog {
 		}
 	}
 
+	/**
+	 * Get the customer's payment type
+	 * 
+	 * @return Payment type
+	 */
 	public String getPaymentType() {
 		if (btnOkPressed) {
 			return (String) comboPayment.getSelectedItem();
@@ -59,6 +60,9 @@ public class Checkout extends JDialog {
 		return null;
 	}
 
+	/**
+	 * Validate all inputs
+	 */
 	public void validateFields() {
 		String cardNo = fieldCardNo.getText();
 		String cardSec = fieldCardSec.getText();
@@ -70,20 +74,23 @@ public class Checkout extends JDialog {
 		// Assume input is valid
 		boolean isValid = true;
 
+		// Check if entered & sanitised
+		// Depends on which type of payment is chosen
 		String[] toValidate = (isCard ? new String[] { cardNo, cardSec } : new String[] { email });
-
 		for (String field : toValidate) {
 			isValid = isValid && !(field.isEmpty() || field.contains(","));
 		}
 
+		// Validate email with regex
 		// Regex from https://howtodoinjava.com/regex/java-regex-validate-email-address/
+		// Let's be honest, regex is worse than hieroglyphs
 		String regex = "^[\\w!#$%&’*+/=?`{|}~^-]+(?:\\.[\\w!#$%&’*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";
 		Pattern emailPattern = Pattern.compile(regex);
 		Matcher emailMatcher = emailPattern.matcher(email);
 
 		// Could clean up this but can't be bothered
 		if (!isCard && !emailMatcher.matches()) {
-			// Validate email with regex for paypal
+			// Validate email with regex for PayPal
 			isValid = false;
 
 		} else if (isCard) {
@@ -107,6 +114,8 @@ public class Checkout extends JDialog {
 
 	/**
 	 * Create the dialog.
+	 * 
+	 * There are some listeners here
 	 */
 	public Checkout() {
 		setAlwaysOnTop(true);
@@ -272,10 +281,14 @@ public class Checkout extends JDialog {
 				okButton = new JButton("OK");
 				okButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
+						/*
+						 * Ok button pressed
+						 */
 						Window thisWindow = Window.getWindows()[0];
 
 						btnOkPressed = true;
 
+						// Trigger window listener
 						dispatchEvent(new WindowEvent(thisWindow, WindowEvent.WINDOW_CLOSING));
 					}
 				});
@@ -288,6 +301,9 @@ public class Checkout extends JDialog {
 				JButton cancelButton = new JButton("Cancel");
 				cancelButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
+						/*
+						 * Cancel button pressed
+						 */
 						Window thisWindow = Window.getWindows()[0];
 
 						btnOkPressed = false;

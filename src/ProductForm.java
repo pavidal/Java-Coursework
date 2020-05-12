@@ -1,31 +1,34 @@
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.JLabel;
 import java.awt.Font;
 import java.awt.Window;
-
-import javax.swing.JComboBox;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JSeparator;
-import javax.swing.SwingConstants;
-import javax.swing.JTextField;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.io.FileNotFoundException;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.awt.event.ActionEvent;
+
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 public class ProductForm extends JDialog {
 
+	/**
+	 * Don't know why this is required.
+	 */
+	private static final long serialVersionUID = 1L;
 	private final JPanel contentPanel = new JPanel();
 	private JTextField fieldBarcode;
 	private JTextField fieldType;
@@ -49,17 +52,23 @@ public class ProductForm extends JDialog {
 	public static void main(String[] args) {
 		try {
 			ProductForm dialog = new ProductForm();
-			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+			dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
+	/**
+	 * Get form information
+	 * 
+	 * @return Form information
+	 */
 	public String[] getItem() {
 		// No point using Item class as it will be written straight to DB
 
 		if (btnOkPressed) {
+
 			// Getting form data
 			String barcode = fieldBarcode.getText();
 			String category = ((String) comboCategory.getSelectedItem()).toLowerCase();
@@ -91,7 +100,12 @@ public class ProductForm extends JDialog {
 		return null;
 	}
 
+	/**
+	 * Validation of inputs
+	 */
 	private void validateFields() {
+
+		// Gathering inputs
 		String barcode = fieldBarcode.getText();
 		String category = (String) comboCategory.getSelectedItem();
 		String type = fieldType.getText();
@@ -104,11 +118,12 @@ public class ProductForm extends JDialog {
 
 		String[] properties = { barcode, category, type, brand, colour, stock, ogPrice, retailPrice, additionalInfo };
 
-		boolean isValid = true;
+		boolean isValid = true; // assume valid. If any aren't, it's turned false.
 		boolean isKeyboard = (category.equals("Keyboard"));
 
 		// Validate numerical inputs
 		try {
+			// For mouse buttons
 			if (!isKeyboard) {
 				int mouseBtns = Integer.parseInt(additionalInfo);
 				isValid = isValid && (mouseBtns > 0);
@@ -119,6 +134,7 @@ public class ProductForm extends JDialog {
 			double retailDouble = Double.parseDouble(retailPrice);
 			double ogDouble = Double.parseDouble(ogPrice);
 
+			// If any are false, isValid is false.
 			isValid = isValid && (barcodeInt > 0) && (stockInt > 0) && (retailDouble >= 0.0) && (ogDouble > 0.0);
 		} catch (Exception e) {
 			// Fail if any are not numeric
@@ -154,7 +170,7 @@ public class ProductForm extends JDialog {
 	 */
 	public ProductForm() {
 		setAlwaysOnTop(true);
-		setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		setResizable(false);
 		setBounds(100, 100, 480, 640);
 		getContentPane().setLayout(new BorderLayout());
@@ -176,7 +192,13 @@ public class ProductForm extends JDialog {
 
 		comboCategory = new JComboBox<String>();
 		comboCategory.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
+				/*
+				 * Product category switched
+				 * 
+				 * Change labels of product type and additional information
+				 */
 				String category = (String) comboCategory.getSelectedItem();
 
 				lblType.setText(category + " Type");
@@ -298,7 +320,11 @@ public class ProductForm extends JDialog {
 			{
 				okButton = new JButton("OK");
 				okButton.addActionListener(new ActionListener() {
+					@Override
 					public void actionPerformed(ActionEvent e) {
+						/*
+						 * Ok button pressed
+						 */
 						Window thisWindow = Window.getWindows()[0];
 
 						btnOkPressed = true;
@@ -314,7 +340,11 @@ public class ProductForm extends JDialog {
 			{
 				JButton cancelButton = new JButton("Cancel");
 				cancelButton.addActionListener(new ActionListener() {
+					@Override
 					public void actionPerformed(ActionEvent arg0) {
+						/*
+						 * Cancel button pressed
+						 */
 						Window thisWindow = Window.getWindows()[0];
 
 						btnOkPressed = false;
@@ -327,7 +357,9 @@ public class ProductForm extends JDialog {
 			}
 		}
 
-		// Adding document listener to all text fields
+		/*
+		 * Adding document listener to all text fields
+		 */
 		JTextField[] fieldList = { fieldBarcode, fieldType, fieldBrand, fieldColour, fieldStock, fieldRetailPrice,
 				fieldAdditionalInfo, fieldOGCost };
 

@@ -3,15 +3,17 @@
 124455, keyboard, standard, Advent, white, wired, 9, 3.50, 5.99, UK
 124566, mouse, standard, Advent, grey, wired, 15, 2.50, 4.99, 2
 125567, keyboard, internet, Logitech, black, wireless, 4, 25.99, 30.0, US
-221101, mouse, standard, Logitech, black, wired, 3, 3.0, 6.99, 3
+221101, mouse, standard, Logitech, black, wired, 2, 3.0, 6.99, 3
 221122, mouse, gaming, Razer, black, wired, 1, 28.0, 40.99, 7
-223044, mouse, gaming, Anker, blue, wired, 3, 16.0, 18.50, 10
+223044, mouse, gaming, Anker, blue, wired, 2, 16.0, 18.50, 10
 234555, keyboard, standard, Apple, white, wireless, 10, 75.50, 85.50, US
 235066, keyboard, flexible, Microsoft, black, wireless, 5, 45.50, 60.0, UK
 236677, mouse, standard, Asus, blue, wireless, 8, 10.0, 16.99, 5
-237700, mouse, gaming, Anker, black, wired, 1, 8.0, 11.99, 7
 237788, keyboard, standard, Logitech, grey, wired, 14, 6.50, 8.99, UK
 237799, mouse, standard, Logitech, grey, wireless, 13, 7.0, 8.0, 2
 238800, keyboard, internet, Microsoft, black, wired, 10, 26.50, 30.0, UK
 666888, keyboard, gaming, Ducky, black, wired, 8, 80.00, 199.99, US
 848475, mouse, standard, Logitech, black, wireless, 13, 30.15, 49.99, 6
+156475, keyboard, gaming, HyperX, black, wired, 18, 50.00, 59.99, UK
+752368, mouse, gaming, Steelseries, silver, wireless, 10, 60.00, 74.99, 9
+453875, keyboard, gaming, Cooler Master, gunmetal, wired, 12, 75.00, 89.95, UK
